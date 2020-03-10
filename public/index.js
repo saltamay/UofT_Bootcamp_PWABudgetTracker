@@ -31,6 +31,7 @@ fetch('/api/transaction')
 
       getAll.onsuccess = function() {
         transactions = getAll.result;
+        transactions = transactions.reverse();
         populateTotal();
         populateTable();
         populateChart();
