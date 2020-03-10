@@ -148,6 +148,8 @@ function sendTransaction(isAdding) {
     }
   })
     .then(response => {
+      // Also save to indexdb
+      saveRecord(transaction);
       return response.json();
     })
     .then(data => {
