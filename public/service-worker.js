@@ -1,34 +1,48 @@
-var CACHE_NAME = 'my-site-cache-v1';
+const CACHE_NAME = 'my-site-cache-v1';
 
-var urlsToCache = [
-  '/',
-  '/styles.css',
-  '/index.js'
-];
-
+const urlsToCache = ['/', '/styles.css', '/db.js', '/index.js'];
 
 self.addEventListener('install', function(event) {
+  console.log('Service Worker: Installed');
   // Perform install steps
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches
+      .open(CACHE_NAME)
       .then(function(cache) {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
+        console.log('Service Worker: Caching Files');
+        cache.addAll(urlsToCache);
       })
+      .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener("fetch", function(event) {
+self.addEventListener('activate', event => {
+  console.log('Service Worker: Activated');
+  event.waitUntil(
+    caches.keys().then(keyList => {
+      return Promise.all(
+        keyList.map(key => {
+          if (key !== CACHE_NAME) {
+            console.log('Removing old cache data', key);
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+});
+
+self.addEventListener('fetch', function(event) {
+  console.log('Service Worker: Fetching');
   event.respondWith(
     fetch(event.request).catch(function() {
       return caches.match(event.request).then(function(response) {
         if (response) {
           return response;
-        } else if (event.request.headers.get("accept").includes("text/html")) {
-          return caches.match("/index.html");
+        } else if (event.request.headers.get('accept').includes('text/html')) {
+          return caches.match('/index.html');
         }
       });
     })
   );
 });
-
